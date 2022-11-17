@@ -1,7 +1,5 @@
 version: "3.4"
 
-volumes:
-  my_node_modules:
 
 services:
   web:
@@ -19,22 +17,17 @@ services:
     build: ui
     image: ui
     restart: "no"
-    volumes:
-      - ./ui/:/app
-      - my_node_modules:/app/node_modules
     ports:
       - 7778:7778
     depends_on:
       - api
-    env_file:
-      - project.env
 
   api:
     build: api
     image: api
     restart: "no"
     volumes:
-      - ./api/:/app
+      - ./api:/api
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - 7777:7777
@@ -60,3 +53,4 @@ services:
     command: -connectRetries=60 -baselineOnMigrate=true migrate
     env_file:
       - project.env
+

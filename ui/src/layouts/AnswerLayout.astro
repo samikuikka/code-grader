@@ -1,0 +1,68 @@
+---
+import Form from "../components/Form";
+import Navigation from "../components/Navigation";
+const { frontmatter } = Astro.props;
+---
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>My Cool Astro Site</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <Navigation />
+        
+        <slot />
+        
+
+        <Form id={frontmatter.id} client:load/>
+
+        <div id="result">
+            <div></div>
+        </div>
+
+        <script>
+            let socket;
+
+            const handleMessage = (message) => {
+                const obj = JSON.parse(message.data);
+                console.log('Result: ', obj);
+                const result_message = document.createElement('h2')
+
+                if(obj.result) {
+                    result_message.textContent = "SUCCESS!"
+                } else {
+                    result_message.textContent = "FAILED!"
+                }
+                const item = document.querySelector("#result > *")
+                
+                item.parentNode.replaceChild(result_message, item)
+                
+                return false
+            }
+
+            const initConn = () => {
+                console.log('Attempting to connect')
+                socket = new WebSocket("ws://localhost:7775/connect");
+            
+                socket.onclose = (code, reason) => {
+                    console.log("WebSocket connection closed");
+                    console.log(code);
+                    console.log(reason);
+                };
+                socket.onerror = (e) => console.error("WebSocket error:", e);
+                socket.onmessage = handleMessage
+                socket.onopen = () => console.log("WebSocket connection created");
+            }
+            initConn();
+
+        </script>
+
+    </body>
+</html>
+
+
+    
+
+

@@ -1,5 +1,5 @@
 FROM node:18-alpine3.15
-#RUN mkdir app
+RUN mkdir app
 WORKDIR /app
 COPY . .
 RUN npm install
