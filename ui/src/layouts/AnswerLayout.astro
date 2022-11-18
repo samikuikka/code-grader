@@ -36,7 +36,7 @@ const { frontmatter } = Astro.props;
                     result_message.textContent = "FAILED!"
                 }
                 const item = document.querySelector("#result > *")
-                
+
                 item.parentNode.replaceChild(result_message, item)
                 
                 return false
@@ -44,7 +44,9 @@ const { frontmatter } = Astro.props;
 
             const initConn = () => {
                 console.log('Attempting to connect')
-                socket = new WebSocket("ws://localhost:7775/connect");
+                const user_id = localStorage.getItem('exercise-user');;
+                
+                socket = new WebSocket(`ws://localhost:7775/connect?id=${user_id}`);
             
                 socket.onclose = (code, reason) => {
                     console.log("WebSocket connection closed");
