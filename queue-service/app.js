@@ -51,17 +51,18 @@ const runQueue = async () => {
         exercise: item.name
     }
     result == "FAIL" ? res.result = false : res.result = true;
+    const bool  = res.result ? '1' : '0';
    
     // save to db
-    if( res.result) {
-        await executeQuery(
-            "INSERT INTO exercises (exercise, username) VALUES ($name, $user);",
-            {
-                name,
-                user
-            },
-        );
-    }
+    await executeQuery(
+        "INSERT INTO exercises (exercise, username, successful) VALUES ($name, $user, $bool);",
+        {
+            name,
+            user,
+            bool
+        },
+    );
+    
 
     //Send grade
     try {

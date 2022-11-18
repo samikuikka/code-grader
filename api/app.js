@@ -21,7 +21,7 @@ const getResults = async (request) => {
   const id = params.get('id');
   
   const result = await executeQuery(
-    "SELECT exercise FROM exercises WHERE username = $id;",
+    "SELECT exercise FROM exercises WHERE username = $id AND successful = TRUE;",
     {
       id
     },
