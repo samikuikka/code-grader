@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { v4 } from 'uuid'
 
 const Answer = ({id}) => {
     const [answer, setAnswer] = useState("");
@@ -6,7 +7,13 @@ const Answer = ({id}) => {
 
     useEffect(() => {
         console.log('Attempting to connect to the websocket');
-        const user_id = localStorage.getItem('exercise-user');
+        let user_id = localStorage.getItem('exercise-user');
+        if(!user_id) {
+            console.log('creating new user!')
+            const new_id = v4();
+            localStorage.setItem('exercise-user', new_id);
+            user_id = new_id;
+        }
 
         const ws = new WebSocket(`ws://localhost:7775/connect?id=${user_id}`)
 
@@ -16,10 +23,12 @@ const Answer = ({id}) => {
         ws.onmessage = (event) => {
             const obj = JSON.parse(event.data);
             console.log('Result:', obj);
-            if(obj.result) {
-                setAnswer("SUCCESS");
-            } else {
-                setAnswer("FAILED");
+            if(obj.exercise == id) {
+                if(obj.result) {
+                    setAnswer("SUCCESS");
+                } else {
+                    setAnswer("FAILED");
+                }
             }
         }
 
