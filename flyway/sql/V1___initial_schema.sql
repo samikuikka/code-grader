@@ -1,1 +1,5 @@
-/* Create your schema here */
+CREATE TABLE exercises (
+    id SERIAL PRIMARY KEY,
+    exercise TEXT NOT NULL,
+    username TEXT NOT NULL
+);

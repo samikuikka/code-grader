@@ -1,5 +1,6 @@
 import { delay, serve } from "./deps.js";
 import { grade } from "./grade.js";
+import { executeQuery } from './database/database.js';
 
 const sockets = new Map();
 
@@ -38,17 +39,36 @@ const runQueue = async () => {
     run = 1;
     
     let item = queue.pop();
+    const user = item.user;
+    const name = item.name;
     console.log('Processing ', item);
-    await delay(5000);
 
+    const result = await grade(item.code);
+    //console.log(result);
     //MOCK GRADE
     let res = {
-        result: null
+        result: null,
+        exercise: item.name
     }
-    Math.random() * 3 < 2 ? res.result = true : res.result = false;
+    result == "FAIL" ? res.result = false : res.result = true;
+   
+    // save to db
+    if( res.result) {
+        await executeQuery(
+            "INSERT INTO exercises (exercise, username) VALUES ($name, $user);",
+            {
+                name,
+                user
+            },
+        );
+    }
 
     //Send grade
-    sockets.get(item.user).send(JSON.stringify(res));
+    try {
+        sockets.get(item.user).send(JSON.stringify(res));
+    } catch (e) {
+        console.log(e);
+    }
     
     if(queue.length > 0) {
         return runQueue();
@@ -79,4 +99,4 @@ const handleRequest = async (request) => {
     return new Response(200);
   };
   
-  serve(handleRequest, { port: 7775 });
+  serve(handleRequest, { port: 7779 });

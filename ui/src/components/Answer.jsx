@@ -15,7 +15,7 @@ const Answer = ({id}) => {
             user_id = new_id;
         }
 
-        const ws = new WebSocket(`ws://localhost:7775/connect?id=${user_id}`)
+        const ws = new WebSocket(`ws://localhost:7800/queue/connect?id=${user_id}`)
 
         ws.onopen = () => console.log('Connection established');
         ws.onerror = (e) => console.log('Web socket error:', e);
@@ -47,7 +47,7 @@ const Answer = ({id}) => {
         }
         console.log('Sending ', body)
 
-        fetch('http://localhost:7777/', {
+        fetch('/api', {
             method: "POST",
             body: JSON.stringify(body)
         },)

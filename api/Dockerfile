@@ -4,7 +4,7 @@ RUN apk add --update docker openrc
 
 EXPOSE 7777
 
-WORKDIR /api
+WORKDIR /app
 
 COPY . .
 

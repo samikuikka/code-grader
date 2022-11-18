@@ -13,15 +13,8 @@ const { frontmatter } = Astro.props;
     </head>
     <body>
         <Navigation />
-        
         <slot />
-        
-
         <Answer client:load id={frontmatter.id}/>
-
-        <div id="result">
-            <div></div>
-        </div>
 
     </body>
 </html>

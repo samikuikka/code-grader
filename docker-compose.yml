@@ -27,11 +27,24 @@ services:
     image: api
     restart: "no"
     volumes:
-      - ./api:/api
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./api:/app
     ports:
       - 7777:7777
     depends_on:
+      - database
+      - flyway
+    env_file:
+      - project.env
+    
+  queue-service:
+    build: queue-service
+    image: queue-service
+    restart: "no"
+    volumes:
+      - ./queue-service/:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - api
       - database
       - flyway
     env_file:

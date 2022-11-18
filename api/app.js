@@ -1,22 +1,37 @@
 import { serve } from "./deps.js";
-import { grade } from "./grade.js";
+import {executeQuery} from './database/database.js';
 
 const sendRequest = (data) => {
-  
-  fetch("http://localhost:7775/",
+  try {
+    fetch("http://queue-service:7779/",
   {
     method: "POST",
     headers: { 'Content-Type': 'application/json'},
     body: JSON.stringify(data)
   });
-} 
+  } catch (e){
+    console.log(e);
+  }
+}
+
+const getResults = async (request) => {
+
+  const url = new URL(request.url);
+  const params = url.searchParams;
+  const id = params.get('id');
+  
+  const result = await executeQuery(
+    "SELECT exercise FROM exercises WHERE username = $id;",
+    {
+      id
+    },
+  );
+    return result.rows;
+}
 
 const handleRequest = async (request) => {
   const url = new URL(request.url);
- /*  const formData = await request.formData();
-  const code = formData.get("code");
-
-  const result = await grade(code); */
+  console.log(url.pathname);
 
   if(request.method === "POST") {
     const data = await request.json();
@@ -24,6 +39,10 @@ const handleRequest = async (request) => {
     //Send the reqeust to the queue
     sendRequest(data);
     return new Response(JSON.stringify({ result: data}));
+  } else if (request.method === "GET" && url.pathname == "/api/results") {
+      console.log('Retrieving results...');
+      const exercise_results = await getResults(request);
+      return new Response(JSON.stringify(exercise_results));
   } else {
     return new Response('POST TO HERE', { status: 200 });
   }
