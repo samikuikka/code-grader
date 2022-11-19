@@ -1,9 +1,16 @@
-import { delay, serve } from "./deps.js";
+import { delay, serve, connect} from "./deps.js";
 import { grade } from "./grade.js";
 import { executeQuery } from './database/database.js';
 
 const sockets = new Map();
 
+// Cache server
+const redis = await connect({
+    hostname: "cache",
+    port: 6379
+})
+
+// Creates the websocket connection between frontend and queue
 const createWebSocketConnection = (request) => {
     console.log("Creating WS connection");
     const { socket, response } = Deno.upgradeWebSocket(request);
@@ -29,6 +36,7 @@ const createWebSocketConnection = (request) => {
 let queue = [];
 let run = 0;
 
+// Queue process
 const runQueue = async () => {
     if(!queue.length) {
         return;
@@ -41,9 +49,19 @@ const runQueue = async () => {
     let item = queue.pop();
     const user = item.user;
     const name = item.name;
-    console.log('Processing ', item);
 
-    const result = await grade(item.code);
+    let result;
+    //Check if in cache
+    const hit = await redis.hget(name, item.code);
+    if(hit != null) {
+        //Cache hit
+        //console.log('Cache hit in queue');
+        result = hit == "0" ? "FAIL" : "PASS";
+    } else {
+        //console.log('Processing ', item);
+        result = await grade(item.code);
+    }
+
     //console.log(result);
     //MOCK GRADE
     let res = {
@@ -62,13 +80,19 @@ const runQueue = async () => {
             bool
         },
     );
+
+    //Save to cache
+    await redis.hset(`${name}`, item.code, bool);
     
 
     //Send grade
     try {
-        sockets.get(item.user).send(JSON.stringify(res));
+        let socket = sockets.get(item.user)
+        if(socket){
+            socket.send(JSON.stringify(res))
+        }
     } catch (e) {
-        console.log(e);
+        console.log("User did not initiate the connection first");
     }
     
     if(queue.length > 0) {
@@ -85,13 +109,35 @@ const handleRequest = async (request) => {
     //console.log(pathname);
     if (pathname == "/" && request.method == 'POST') {
         const data = await request.json();
-        console.log('Adding to queue', data)
-        queue.push(data);
+        //console.log('Adding to queue', data)
 
-        if(run == 0) {
-            console.log("Started the service")
-            run = 1;
-            runQueue();
+        const hit = await redis.hget(data.name, data.code);
+        if(hit != null) {
+            //Cache hit
+            const val = hit == "0" ? false : true;
+            const res = {
+                result: val,
+                exercise: data.name
+            }
+            //Send grade
+            try {
+                let socket = sockets.get(data.user)
+                if(socket){
+                    socket.send(JSON.stringify(res))
+                }
+                //sockets.get(data.user).send(JSON.stringify(res));
+            } catch (e) {
+                console.log(e);
+            }
+        } else {
+            // Cache miss
+            queue.push(data);
+
+            if(run == 0) {
+                console.log("Started the service")
+                run = 1;
+                runQueue();
+            }
         }
     } else if (pathname === "/connect") {
       return createWebSocketConnection(request);

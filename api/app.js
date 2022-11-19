@@ -31,14 +31,18 @@ const getResults = async (request) => {
 
 const handleRequest = async (request) => {
   const url = new URL(request.url);
-  console.log(url.pathname);
+  
+  //console.log(url.pathname);
 
   if(request.method === "POST") {
     const data = await request.json();
-    console.log('Data in the api: ', data)
-    //Send the reqeust to the queue
+
+    //console.log('Data in the api: ', data)
+
+    //Send the request to the queue
     sendRequest(data);
     return new Response(JSON.stringify({ result: data}));
+
   } else if (request.method === "GET" && url.pathname == "/api/results") {
       console.log('Retrieving results...');
       const exercise_results = await getResults(request);

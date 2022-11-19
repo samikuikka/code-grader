@@ -10,7 +10,7 @@ export const options = {
 export default function () {
     const url = 'http://localhost:7800/api'
     const payload = JSON.stringify({
-        code: "function () { return 42 }",
+        code: "function ()   { return 42 }",
         name: "exercise-1",
         user: uuidv4()
     })
