@@ -1,5 +1,10 @@
 # code-grader
 
+Fullstack application for grading user submitted code for coding problems.
+Frontend: Astro + React components
+Backend uses Deno and communicates with WebSockets.
+Database uses PostgreSQL which is migrated using Flyway. Redis is also used to cache latest submissions.
+
 ## Running the application
 
 Prerequisites: Docker and docker-compose. Check out
